@@ -175,7 +175,8 @@ def test___policy_with_copy_to_rule___main___deletes_only_files_that_have_expect
 
 def test___multiple_policies___main___retains_expected_files(example_folder, snapshot, tmp_path):
     policies = [
-        { # delete .new_suffix files if a .txt file exists
+        {
+            # delete .new_suffix files if a .txt file exists
             "folder": str(example_folder),
             "age": 1,
             "extension": ".new_suffix",
