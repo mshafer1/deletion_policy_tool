@@ -1,0 +1,10 @@
+file_with_copy_10.new_suffix
+file_with_copy_11.new_suffix
+file_with_copy_12.new_suffix
+file_with_copy_13.new_suffix
+file_with_copy_14.new_suffix
+file_with_different_extension_0.log
+file_with_different_extension_1.log
+file_with_different_extension_2.log
+file_with_different_extension_3.log
+file_with_different_extension_4.log
