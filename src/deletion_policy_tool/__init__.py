@@ -1,5 +1,6 @@
 import dataclasses
 import datetime
+import os
 import pathlib
 import typing
 
@@ -80,7 +81,7 @@ def _iter_policy_files(policy: DeletionPolicy) -> typing.Iterator[pathlib.Path]:
 
 
 def _is_file_old(file: pathlib.Path, min_age_days: int) -> bool:
-    file_age = TODAY - datetime.datetime.fromtimestamp(file.stat().st_mtime)
+    file_age = datetime.datetime.now() - datetime.datetime.fromtimestamp(file.stat().st_mtime)
     return file_age >= datetime.timedelta(days=min_age_days)
 
 
@@ -126,10 +127,21 @@ def _process_policy(policy: DeletionPolicy) -> None:
 
 
 @click.command()
-def _main() -> None:
+@click.option(
+    "--remove-empty-folders", is_flag=True, help="Remove empty folders after deleting files."
+)
+def _main(remove_empty_folders: bool) -> None:
     policies = _load_config()
     for policy in policies:
         _process_policy(policy)
+
+    if remove_empty_folders:
+        for policy in policies:
+            for folder, _, _ in os.walk(policy.folder, topdown=False):
+                folder_path = pathlib.Path(folder)
+                if not any(folder_path.iterdir()):
+                    print(f"removing empty folder {folder_path}")
+                    folder_path.rmdir()
 
 
 if __name__ == "__main__":

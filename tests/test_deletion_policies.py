@@ -68,7 +68,7 @@ def example_folder(tmp_path):
     return folder
 
 
-def run_main_cli(tmp_path, policies):
+def run_main_cli(tmp_path, policies, args=None):
     config_file = tmp_path / "deletion_policy.yml"
     config_file.write_text(yaml.safe_dump(policies), encoding="utf-8")
 
@@ -76,6 +76,7 @@ def run_main_cli(tmp_path, policies):
         deletion_policy_tool._main,
         env={"DELETION_POLICY_CONFIG_FILE": str(config_file)},
         catch_exceptions=False,
+        args=args or [],
     )
 
     assert result.exit_code == 0
@@ -191,5 +192,30 @@ def test___multiple_policies___main___retains_expected_files(example_folder, sna
     files_before = remaining_relative_paths(example_folder)
 
     run_main_cli(tmp_path, policies)
+
+    _assert_result(example_folder, snapshot, files_before)
+
+
+def test___multiple_policies_with_remove_folders___main___removes_empty_folders(
+    example_folder, snapshot, tmp_path
+):
+    policies = [
+        {  # delete .new_suffix files if a .txt file exists
+            "folder": str(example_folder),
+            "age": 1,
+            "extension": ".new_suffix",
+            "delete_if_copy_exists": [".new_suffix", ".txt"],
+        },
+        {
+            # also delete the .txt file if it was backed up to the backup folder
+            "folder": str(example_folder),
+            "age": 1,
+            "extension": ".txt",
+            "delete_if_backed_up_to": str(example_folder.parent / "backup"),
+        },
+    ]
+    files_before = remaining_relative_paths(example_folder)
+
+    run_main_cli(tmp_path, policies, args=["--remove-empty-folders"])
 
     _assert_result(example_folder, snapshot, files_before)
