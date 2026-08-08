@@ -81,6 +81,17 @@ export DELETION_POLICY_CONFIG_FILE=/path/to/deletion_policy.yml
 run-deletion-policy
 ```
 
+```bash
+# use default policy (in ~/.config/deletion_policy.yml)
+# also remove directories that are empty after files are deleted
+run-deletion-policy --remove-empty-folders
+```
+
+To see additional options, use --help:
+```bash
+run-deletion-policy --help
+```
+
 If you are using the package entry point installed by Poetry, the command can also be run as:
 
 ```bash
