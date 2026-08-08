@@ -8,6 +8,8 @@ file_with_different_extension_1.log
 file_with_different_extension_2.log
 file_with_different_extension_3.log
 file_with_different_extension_4.log
+nested_folder/
+nested_folder/backed_up/
 nested_folder/file_0.txt
 nested_folder/file_1.txt
 nested_folder/file_2.txt

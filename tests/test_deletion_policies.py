@@ -54,10 +54,12 @@ def example_folder(tmp_path):
 
     # nested files with backups
     for i in range(20, 25):
-        file = folder / "nested_folder" / f"nested_file_with_backup_{i}.txt"
+        file = folder / "nested_folder" / "backed_up" / f"nested_file_with_backup_{i}.txt"
         file.parent.mkdir(parents=True, exist_ok=True)
         file.write_text(f"example content {i}")
-        backup_file = backup_folder / "nested_folder" / f"nested_file_with_backup_{i}.txt"
+        backup_file = (
+            backup_folder / "nested_folder" / "backed_up" / f"nested_file_with_backup_{i}.txt"
+        )
         backup_file.parent.mkdir(parents=True, exist_ok=True)
         backup_file.write_text(f"backup of example content {i}")
         os.utime(backup_file, (normal_age, normal_age))
@@ -83,7 +85,8 @@ def run_main_cli(tmp_path, policies):
 
 def remaining_relative_paths(folder):
     return sorted(
-        file.relative_to(folder).as_posix() for file in folder.rglob("*") if file.is_file()
+        file.relative_to(folder).as_posix() + ("" if file.is_file() else "/")
+        for file in folder.rglob("*")
     )
 
 
