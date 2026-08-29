@@ -378,4 +378,5 @@ def test___exception_in_config_loading___main_output_does_not_include_stack_trac
     )
 
     assert result.exit_code != 0
+    assert "Error: " in result.output
     assert "Traceback" not in result.output
