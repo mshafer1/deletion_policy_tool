@@ -1,6 +1,6 @@
 [project]
 name = "deletion_policy_tool"
-version = "0.1.3.dev0"
+version = "0.1.4.dev0"
 description = "A script to implement a configurable deletion policy for n folders"
 authors = [
     {name = "mshafer1",email = "2565361+mshafer1@users.noreply.github.com"}
