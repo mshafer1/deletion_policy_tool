@@ -17,6 +17,7 @@ scripts = {run-deletion-policy = "deletion_policy_tool.__main__:_main"}
 python-decouple = "^3.8"
 click = "^8.4.2"
 pyyaml = "^6.0.3"
+click-option-group = "^0.5.9"
 
 
 [build-system]
