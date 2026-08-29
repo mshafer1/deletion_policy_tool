@@ -53,6 +53,10 @@ def _load_config() -> list[DeletionPolicy]:
         "DELETION_POLICY_CONFIG_FILE", default="~/.config/deletion_policy.yml"
     ).expanduser()
 
+    if not config_file.is_file():
+        raise FileNotFoundError(
+            f"Configuration file {config_file} not found. Please create it or set the DELETION_POLICY_CONFIG_FILE environment variable to point to a different location."
+        )
     with config_file.open("r", encoding="utf-8") as config_stream:
         raw_config = yaml.load(config_stream, Loader=yaml.CSafeLoader) or []
 
@@ -244,6 +248,23 @@ def _main(
         raise click.UsageError("Cannot use both --verbose and --quiet options together.")
     verbosity = verbose_count - quiet_count
     _config_logging(verbosity=verbosity)
+    try:
+        _run(
+            remove_empty_folders=remove_empty_folders,
+            confirm_each_delete=confirm_each_delete,
+            dry_run=dry_run,
+        )
+    except Exception as e:
+        _logger.error(f"{e}")
+        print("\n\n")
+        raise click.ClickException(f"{e}") from e
+
+
+def _run(
+    remove_empty_folders: bool,
+    confirm_each_delete: bool,
+    dry_run: bool,
+) -> None:
     policies = _load_config()
     for policy in policies:
         _process_policy(policy, confirm_each_delete=confirm_each_delete, dry_run=dry_run)
