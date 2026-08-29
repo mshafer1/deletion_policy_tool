@@ -12,6 +12,7 @@ import pathlib
 import typing
 
 import click
+import click_option_group
 import decouple
 import yaml
 
@@ -214,14 +215,15 @@ def _config_logging(verbosity: int):
     is_flag=True,
     help="Do not take actions, only log what would happen.",
 )
-@click.option(
+@click_option_group.optgroup.group("Logging Options", cls=click_option_group.MutuallyExclusiveOptionGroup)
+@click_option_group.optgroup.option(
     "--verbose",
     "-v",
     multiple=True,
     is_flag=True,
     help="Increase the verbosity (can be repeated)",
 )
-@click.option(
+@click_option_group.optgroup.option(
     "--quiet",
     "-q",
     multiple=True,
