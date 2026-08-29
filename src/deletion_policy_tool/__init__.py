@@ -148,18 +148,33 @@ def _process_policy(
 ) -> None:
     for file in _iter_policy_files(policy):
         if not _is_file_old(file, policy.age):
-            _logger.info("skipping %s: less than %s days old", file, policy.age)
+            _logger.info(
+                "skipping %s: less than %s days old (%s days old)",
+                file,
+                policy.age,
+                (
+                    datetime.datetime.now() - datetime.datetime.fromtimestamp(file.stat().st_mtime)
+                ).days,
+            )
             continue
 
         # using nested if statements to avoid logging if the skip is due to not using the parameter
         if policy.delete_if_backed_up_to is not None:
             if not _has_backup_copy(file, policy):
-                _logger.info("skipping %s: backup copy missing", file)
+                _logger.info(
+                    "skipping %s: backup copy does not exist in %s",
+                    file,
+                    policy.delete_if_backed_up_to,
+                )
                 continue
 
         if policy.delete_if_copy_exists is not None:
             if not _has_expected_copy(file, policy):
-                _logger.info("skipping %s: expected copy missing", file)
+                _logger.info(
+                    "skipping %s: expected copy (%s) missing",
+                    file,
+                    file.with_suffix(policy.delete_if_copy_exists[1]),
+                )
                 continue
 
         if _confirm_or_skip(
@@ -200,7 +215,7 @@ def _config_logging(verbosity: int):
     handler.setFormatter(logging.Formatter("%(asctime)s - %(levelname)s - %(message)s"))
     root_logger.addHandler(handler)
 
-    log_dir = pathlib.Path.home() / "logs"
+    log_dir = pathlib.Path.home() / ".logs"
     log_dir.mkdir(exist_ok=True, parents=True)
     file_handler = logging.handlers.RotatingFileHandler(
         log_dir / "deletion_policy_tool.log", maxBytes=10 * 1024 * 1024, backupCount=5
