@@ -211,6 +211,7 @@ def _config_logging(verbosity: int):
     # Set the file logger to DEBUG level and add the file handler
     # this is for messages we want to only put in the file log.
     _file_logger.setLevel(logging.DEBUG)
+    _file_logger.propagate = False  # Prevent double logging to root logger
     _file_logger.addHandler(file_handler)
 
 
