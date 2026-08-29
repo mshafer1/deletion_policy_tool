@@ -32,10 +32,10 @@ class DeletionPolicy:
     age: int
     """Delete files older than this many days (by modification time)."""
 
-    delete_if_backed_up_to: pathlib.Path | None
+    delete_if_backed_up_to: pathlib.Path | None = None
     """(optional - default None) Delete files if they are backed up to this folder."""
 
-    delete_if_copy_exists: typing.Tuple[str, str] | None
+    delete_if_copy_exists: typing.Tuple[str, str] | None = None
     """(optional - default None) Delete files that have been copied to a different
     extension in this same folder. The tuple is (source_extension, destination_extension)."""
 
