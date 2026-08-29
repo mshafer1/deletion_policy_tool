@@ -200,7 +200,7 @@ def _config_logging(verbosity: int):
     handler.setFormatter(logging.Formatter("%(asctime)s - %(levelname)s - %(message)s"))
     root_logger.addHandler(handler)
 
-    log_dir = pathlib.Path.home() / "logs"
+    log_dir = pathlib.Path.home() / ".logs"
     log_dir.mkdir(exist_ok=True, parents=True)
     file_handler = logging.handlers.RotatingFileHandler(
         log_dir / "deletion_policy_tool.log", maxBytes=10 * 1024 * 1024, backupCount=5
