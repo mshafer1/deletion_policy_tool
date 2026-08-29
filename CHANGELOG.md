@@ -26,6 +26,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Initial implementation (#1)
 - Setup release (#2)
 
-[Unreleased]: https://github.com/mshafer1/deletion_policy_tool/compare/0.1.1...HEAD
+[Unreleased]: https://github.com/mshafer1/deletion_policy_tool/compare/0.1.2...HEAD
+[0.1.2]: https://github.com/mshafer1/deletion_policy_tool/compare/0.1.1...0.1.2
 [0.1.1]: https://github.com/mshafer1/deletion_policy_tool/compare/0.1.0...0.1.1
 [0.1.0]: https://github.com/mshafer1/deletion_policy_tool/releases/tag/0.1.0
