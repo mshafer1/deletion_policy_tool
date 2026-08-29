@@ -76,6 +76,9 @@ TODAY = datetime.datetime.now()
 def _iter_policy_files(policy: DeletionPolicy) -> typing.Iterator[pathlib.Path]:
     pattern = "*" if policy.extension == ".*" else f"*{policy.extension}"
     for file in policy.folder.rglob(pattern):
+        if file.is_symlink():
+            print(f"skipping {file}: symlink")
+            continue
         if file.is_file():
             yield file
 

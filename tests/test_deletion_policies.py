@@ -173,6 +173,30 @@ def test___policy_with_copy_to_rule___main___deletes_only_files_that_have_expect
     _assert_result(example_folder, snapshot, files_before)
 
 
+def test___policy_skips_symlinks___main___leaves_them_in_place(tmp_path):
+    folder = tmp_path / "example"
+    folder.mkdir()
+
+    external_target = tmp_path / "external_target.txt"
+    external_target.write_text("target content")
+    os.utime(external_target, (time.time() - (2 * 24 * 60 * 60),) * 2)
+
+    actual_file = folder / "real.txt"
+    actual_file.write_text("actual content")
+    os.utime(actual_file, (time.time() - (2 * 24 * 60 * 60),) * 2)
+
+    symlink = folder / "link.txt"
+    symlink.symlink_to(external_target)
+
+    policies = [{"folder": str(folder), "age": 1, "extension": ".txt"}]
+
+    run_main_cli(tmp_path, policies)
+
+    assert symlink.is_symlink()
+    assert symlink.exists()
+    assert not actual_file.exists()
+
+
 def test___multiple_policies___main___retains_expected_files(example_folder, snapshot, tmp_path):
     policies = [
         {
