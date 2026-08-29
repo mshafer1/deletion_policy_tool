@@ -82,7 +82,7 @@ jobs:
     - name: Upload to ${{ env.environment }}
       uses: pypa/gh-action-pypi-publish@dc37677b2e1c63e2034f94d8a5b11f265b73ba33 # v1.14.2
       with:
-        repository-url: ${{ fromJson(env.environment-info)[env.environment].upload-url }} 
+        repository-url: ${{ fromJson(env.environment-info)[env.environment].upload-url }}
   update_version:
     name: Update deletion_policy_tool version
     runs-on: ubuntu-latest
