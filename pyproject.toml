@@ -13,7 +13,10 @@ packages = [
 ]
 scripts = {run-deletion-policy = "deletion_policy_tool:_main"}
 readme = "README.md"
-links = { "homepage" = "https://github.com/mshafer1/deletion_policy_tool", "changelog" = "https://github.com/mshafer1/deletion_policy_tool/blob/main/CHANGELOG.md"}
+
+[project.urls]
+ Repository = "https://github.com/mshafer1/deletion_policy_tool"
+ Changelog = "https://github.com/mshafer1/deletion_policy_tool/blob/main/CHANGELOG.md"
 
 [tool.poetry.dependencies]
 python-decouple = "^3.8"
