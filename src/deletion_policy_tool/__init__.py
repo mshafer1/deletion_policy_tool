@@ -1,5 +1,7 @@
 import dataclasses
 import datetime
+import logging
+import logging.handlers
 import os
 import pathlib
 import typing
@@ -7,6 +9,9 @@ import typing
 import click
 import decouple
 import yaml
+
+_logger = logging.getLogger(__name__)
+_logger.addHandler(logging.NullHandler())
 
 
 @dataclasses.dataclass(frozen=True, slots=True)
@@ -155,6 +160,40 @@ def _process_policy(
             file.unlink()
 
 
+def _config_logging(verbosity: int):
+    """Setup logging output.
+
+    If verbosity is -1, logging is set to info warning
+    0 = info
+    1 = debug
+    and so on
+
+    Logging is also done to ~/logs/deletion_policy_tool.log with a rotating file handler.
+    """
+    verbosity = max(-1, verbosity)  # Ensure verbosity is at least -1
+    verbosity = min(2, verbosity)  # Ensure verbosity is at most 2
+
+    root_logger = logging.getLogger()
+    if verbosity <= -1:
+        root_logger.setLevel(logging.WARNING)
+    elif verbosity == 0:
+        root_logger.setLevel(logging.INFO)
+    else:
+        root_logger.setLevel(logging.DEBUG)
+
+    handler = logging.StreamHandler()
+    handler.setFormatter(logging.Formatter("%(asctime)s - %(levelname)s - %(message)s"))
+    root_logger.addHandler(handler)
+
+    log_dir = pathlib.Path.home() / "logs"
+    log_dir.mkdir(exist_ok=True, parents=True)
+    file_handler = logging.handlers.RotatingFileHandler(
+        log_dir / "deletion_policy_tool.log", maxBytes=10 * 1024 * 1024, backupCount=5
+    )
+    file_handler.setFormatter(logging.Formatter("%(asctime)s - %(levelname)s - %(message)s"))
+    root_logger.addHandler(file_handler)
+
+
 @click.command()
 @click.option(
     "--remove-empty-folders",
@@ -171,7 +210,34 @@ def _process_policy(
     is_flag=True,
     help="Do not take actions, only log what would happen.",
 )
-def _main(remove_empty_folders: bool, confirm_each_delete: bool, dry_run: bool) -> None:
+@click.option(
+    "--verbose",
+    "-v",
+    multiple=True,
+    is_flag=True,
+    help="Increase the verbosity (can be repeated)",
+)
+@click.option(
+    "--quiet",
+    "-q",
+    multiple=True,
+    is_flag=True,
+    help="Decrease the verbosity (can be repeated)",
+)
+@click.version_option()
+def _main(
+    remove_empty_folders: bool,
+    confirm_each_delete: bool,
+    dry_run: bool,
+    verbose: typing.List[bool],
+    quiet: typing.List[bool],
+) -> None:
+    verbose_count = len(verbose)
+    quiet_count = len(quiet)
+    if verbose_count > 0 and quiet_count > 0:
+        raise click.UsageError("Cannot use both --verbose and --quiet options together.")
+    verbosity = verbose_count - quiet_count
+    _config_logging(verbosity=verbosity)
     policies = _load_config()
     for policy in policies:
         _process_policy(

@@ -96,6 +96,51 @@ def remaining_relative_paths(folder):
     )
 
 
+@pytest.mark.parametrize(
+    ("args", "expected_verbosity"),
+    [
+        ([], 0),
+        (["-v"], 1),
+        (["-v", "-v"], 2),
+        (["-q"], -1),
+        (["-q", "-q"], -2),
+    ],
+)
+def test___verbosity_flags___main___passes_expected_verbosity_to_config_logging(
+    monkeypatch, args, expected_verbosity
+):
+    captured = {}
+
+    monkeypatch.setattr(deletion_policy_tool, "_load_config", lambda: [])
+
+    def fake_config_logging(verbosity):
+        captured["verbosity"] = verbosity
+
+    monkeypatch.setattr(deletion_policy_tool, "_config_logging", fake_config_logging)
+
+    result = click.testing.CliRunner().invoke(
+        deletion_policy_tool._main,
+        args=args,
+        catch_exceptions=False,
+    )
+
+    assert result.exit_code == 0
+    assert captured["verbosity"] == expected_verbosity
+
+
+def test___verbosity_flags___main___rejects_mixed_verbose_and_quiet(monkeypatch):
+    monkeypatch.setattr(deletion_policy_tool, "_load_config", lambda: [])
+
+    result = click.testing.CliRunner().invoke(
+        deletion_policy_tool._main,
+        args=["-v", "-q"],
+        catch_exceptions=False,
+    )
+
+    assert result.exit_code != 0
+    assert "Cannot use both --verbose and --quiet options together." in result.output
+
+
 def _assert_result(example_folder, snapshot, files_before):
     snapshot.assert_match(
         "\n".join(remaining_relative_paths(example_folder)) + "\n",
