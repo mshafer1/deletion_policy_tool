@@ -1,5 +1,9 @@
 # deletion-policy-tool
 
+> Warning: This tool is intentionally built for developers and system administrators who understand that it follows the classic Linux philosophy: "If you want to shoot yourself in the foot, it is this tool's job to do that as efficiently as possible." Use it only with carefully reviewed policies, backups, and explicit operational intent.
+>
+> This project comes with no warranty. See the LICENSE file for the legal text and warranty disclaimer.
+
 This project provides a small command-line tool for cleaning up files according to configurable deletion policies.
 
 ## What it does
@@ -80,6 +84,46 @@ Set the configuration path and run the CLI:
 export DELETION_POLICY_CONFIG_FILE=/path/to/deletion_policy.yml
 run-deletion-policy
 ```
+
+```bash
+# use default policy (in ~/.config/deletion_policy.yml)
+# also remove directories that are empty after files are deleted
+run-deletion-policy --remove-empty-folders
+```
+
+```bash
+# preview deletions without removing anything
+run-deletion-policy --dry-run
+```
+
+```bash
+# ask for confirmation before deleting each matching file or folder
+run-deletion-policy --confirm-each-delete
+```
+
+```bash
+# see all options
+run-deletion-policy --help
+```
+
+### Optional flags
+
+- `--dry-run`: logs the files and folders that would be deleted without making any changes.
+- `--confirm-each-delete`: prompts the user before each deletion so you can review the action individually.
+- `--remove-empty-folders`: removes directories that are empty after file deletions.
+- `-v`: increases log verbosity. The default logging level is `INFO`; repeating `-v` raises the level to `DEBUG` so more detail is shown while policies are evaluated.
+
+### Logging behavior
+
+The CLI sets up logging as soon as it starts. Messages are emitted to the console and also written to a rotating log file at `~/logs/deletion_policy_tool.log`.
+
+- Console logging follows the configured verbosity level.
+- The default level is `INFO`.
+- Each additional `-v` flag increases logging detail until `DEBUG` is reached.
+- The file log uses a rotating handler with a 10 MiB limit and keeps the last 5 log files.
+
+This makes it easier to troubleshoot policy matching and file-skipping decisions while still keeping a persistent history of runs.
+
 
 If you are using the package entry point installed by Poetry, the command can also be run as:
 
