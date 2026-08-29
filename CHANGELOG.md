@@ -7,5 +7,12 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [0.1] - 2026-08-29
 
-[unreleased]: https://github.com/mshafer1/deletion_policy_tool/compare/HEAD
+### Changed
+
+- Initial implementation (#1)
+- Setup release (#2)
+
+[unreleased]: https://github.com/mshafer1/deletion_policy_tool/compare/0.1...HEAD
+[0.1]: https://github.com/mshafer1/deletion_policy_tool/0.1
