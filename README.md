@@ -97,16 +97,29 @@ run-deletion-policy --dry-run
 run-deletion-policy --confirm-each-delete
 ```
 
+```bash
+# see all options
+run-deletion-policy --help
+```
+
 ### Optional flags
 
 - `--dry-run`: logs the files and folders that would be deleted without making any changes.
 - `--confirm-each-delete`: prompts the user before each deletion so you can review the action individually.
 - `--remove-empty-folders`: removes directories that are empty after file deletions.
+- `-v`: increases log verbosity. The default logging level is `INFO`; repeating `-v` raises the level to `DEBUG` so more detail is shown while policies are evaluated.
 
-To see additional options, use --help:
-```bash
-run-deletion-policy --help
-```
+### Logging behavior
+
+The CLI sets up logging as soon as it starts. Messages are emitted to the console and also written to a rotating log file at `~/logs/deletion_policy_tool.log`.
+
+- Console logging follows the configured verbosity level.
+- The default level is `INFO`.
+- Each additional `-v` flag increases logging detail until `DEBUG` is reached.
+- The file log uses a rotating handler with a 10 MiB limit and keeps the last 5 log files.
+
+This makes it easier to troubleshoot policy matching and file-skipping decisions while still keeping a persistent history of runs.
+
 
 If you are using the package entry point installed by Poetry, the command can also be run as:
 

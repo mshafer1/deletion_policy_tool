@@ -54,16 +54,11 @@ def example_folder(tmp_path):
 
     # nested files with backups
     for i in range(20, 25):
-        file = (
-            folder / "nested_folder" / "backed_up" / f"nested_file_with_backup_{i}.txt"
-        )
+        file = folder / "nested_folder" / "backed_up" / f"nested_file_with_backup_{i}.txt"
         file.parent.mkdir(parents=True, exist_ok=True)
         file.write_text(f"example content {i}")
         backup_file = (
-            backup_folder
-            / "nested_folder"
-            / "backed_up"
-            / f"nested_file_with_backup_{i}.txt"
+            backup_folder / "nested_folder" / "backed_up" / f"nested_file_with_backup_{i}.txt"
         )
         backup_file.parent.mkdir(parents=True, exist_ok=True)
         backup_file.write_text(f"backup of example content {i}")
@@ -147,8 +142,7 @@ def _assert_result(example_folder, snapshot, files_before):
         "expected_remaining_files.txt",
     )
     snapshot.assert_match(
-        "\n".join(difflib.ndiff(files_before, remaining_relative_paths(example_folder)))
-        + "\n",
+        "\n".join(difflib.ndiff(files_before, remaining_relative_paths(example_folder))) + "\n",
         "diff.txt",
     )
 
@@ -248,9 +242,7 @@ def test___policy_skips_symlinks___main___leaves_them_in_place(tmp_path):
     assert not actual_file.exists()
 
 
-def test___multiple_policies___main___retains_expected_files(
-    example_folder, snapshot, tmp_path
-):
+def test___multiple_policies___main___retains_expected_files(example_folder, snapshot, tmp_path):
     policies = [
         {
             # delete .new_suffix files if a .txt file exists

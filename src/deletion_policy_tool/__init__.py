@@ -1,3 +1,8 @@
+"""Deletion Policy Tool: A utility for managing file deletion based on configurable policies.
+
+See the README.md for usage instructions.
+"""
+
 import dataclasses
 import datetime
 import logging
@@ -16,6 +21,8 @@ _logger.addHandler(logging.NullHandler())
 
 @dataclasses.dataclass(frozen=True, slots=True)
 class DeletionPolicy:
+    """Represents a deletion policy for managing files in a folder."""
+
     folder: pathlib.Path
     """Folder to examine for files to delete."""
 
@@ -26,7 +33,8 @@ class DeletionPolicy:
     """(optional - default None) Delete files if they are backed up to this folder."""
 
     delete_if_copy_exists: typing.Tuple[str, str] | None
-    """(optional - default None) Delete files that have been copied to a different extension in this same folder. The tuple is (source_extension, destination_extension)."""
+    """(optional - default None) Delete files that have been copied to a different
+    extension in this same folder. The tuple is (source_extension, destination_extension)."""
 
     extension: str = ".*"
     """(optional - default '.*') File extension to match (e.g., '.mp4')."""
@@ -89,9 +97,7 @@ def _iter_policy_files(policy: DeletionPolicy) -> typing.Iterator[pathlib.Path]:
 
 
 def _is_file_old(file: pathlib.Path, min_age_days: int) -> bool:
-    file_age = datetime.datetime.now() - datetime.datetime.fromtimestamp(
-        file.stat().st_mtime
-    )
+    file_age = datetime.datetime.now() - datetime.datetime.fromtimestamp(file.stat().st_mtime)
     return file_age >= datetime.timedelta(days=min_age_days)
 
 
@@ -122,9 +128,7 @@ def _confirm_or_skip(
         print(f"would {action} {path}")
         return False
 
-    if confirm_each_delete and not click.confirm(
-        f"{action.capitalize()} {path}?", default=False
-    ):
+    if confirm_each_delete and not click.confirm(f"{action.capitalize()} {path}?", default=False):
         print(f"skipping {path}: user declined")
         return False
 
@@ -240,9 +244,7 @@ def _main(
     _config_logging(verbosity=verbosity)
     policies = _load_config()
     for policy in policies:
-        _process_policy(
-            policy, confirm_each_delete=confirm_each_delete, dry_run=dry_run
-        )
+        _process_policy(policy, confirm_each_delete=confirm_each_delete, dry_run=dry_run)
 
     if remove_empty_folders:
         for policy in policies:
