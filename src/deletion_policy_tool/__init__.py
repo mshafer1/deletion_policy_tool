@@ -18,6 +18,8 @@ import yaml
 
 _logger = logging.getLogger(__name__)
 _logger.addHandler(logging.NullHandler())
+_file_logger = logging.getLogger(f"{__name__}.file")
+_file_logger.addHandler(logging.NullHandler())
 
 
 @dataclasses.dataclass(frozen=True, slots=True)
@@ -95,7 +97,7 @@ def _iter_policy_files(policy: DeletionPolicy) -> typing.Iterator[pathlib.Path]:
     pattern = "*" if policy.extension == ".*" else f"*{policy.extension}"
     for file in policy.folder.rglob(pattern):
         if file.is_symlink():
-            print(f"skipping {file}: symlink")
+            _logger.info("skipping %s: symlink", file)
             continue
         if file.is_file():
             yield file
@@ -130,14 +132,14 @@ def _confirm_or_skip(
     path: pathlib.Path, *, action: str, dry_run: bool, confirm_each_delete: bool
 ) -> bool:
     if dry_run:
-        print(f"would {action} {path}")
+        _logger.info("would %s %s", action, path)
         return False
 
     if confirm_each_delete and not click.confirm(f"{action.capitalize()} {path}?", default=False):
-        print(f"skipping {path}: user declined")
+        _logger.info("skipping %s: user declined", path)
         return False
 
-    print(f"{action} {path}")
+    _logger.info("%s %s", action, path)
     return True
 
 
@@ -146,18 +148,18 @@ def _process_policy(
 ) -> None:
     for file in _iter_policy_files(policy):
         if not _is_file_old(file, policy.age):
-            print(f"skipping {file}: less than {policy.age} days old")
+            _logger.info("skipping %s: less than %s days old", file, policy.age)
             continue
 
         # using nested if statements to avoid logging if the skip is due to not using the parameter
         if policy.delete_if_backed_up_to is not None:
             if not _has_backup_copy(file, policy):
-                print(f"skipping {file}: backup copy missing")
+                _logger.info("skipping %s: backup copy missing", file)
                 continue
 
         if policy.delete_if_copy_exists is not None:
             if not _has_expected_copy(file, policy):
-                print(f"skipping {file}: expected copy missing")
+                _logger.info("skipping %s: expected copy missing", file)
                 continue
 
         if _confirm_or_skip(
@@ -202,6 +204,11 @@ def _config_logging(verbosity: int):
     file_handler.setFormatter(logging.Formatter("%(asctime)s - %(levelname)s - %(message)s"))
     root_logger.addHandler(file_handler)
 
+    # Set the file logger to DEBUG level and add the file handler
+    # this is for messages we want to only put in the file log.
+    _file_logger.setLevel(logging.DEBUG)
+    _file_logger.addHandler(file_handler)
+
 
 @click.command()
 @click.option(
@@ -219,7 +226,9 @@ def _config_logging(verbosity: int):
     is_flag=True,
     help="Do not take actions, only log what would happen.",
 )
-@click_option_group.optgroup.group("Logging Options", cls=click_option_group.MutuallyExclusiveOptionGroup)
+@click_option_group.optgroup.group(
+    "Logging Options", cls=click_option_group.MutuallyExclusiveOptionGroup
+)
 @click_option_group.optgroup.option(
     "--verbose",
     "-v",
@@ -255,8 +264,9 @@ def _main(
             dry_run=dry_run,
         )
     except Exception as e:
-        _logger.error(f"{e}")
-        print("\n\n")
+        _file_logger.exception(
+            "Exception occurred during execution"
+        )  # log the stack trace only to file
         raise click.ClickException(f"{e}") from e
 
 
