@@ -1,10 +1,11 @@
 import difflib
+import logging
 import os
 import time
 
 import click.testing
 import pytest
-import yaml
+import ryaml
 
 import deletion_policy_tool
 
@@ -70,7 +71,7 @@ def example_folder(tmp_path):
 
 def run_main_cli(tmp_path, policies, args=None):
     config_file = tmp_path / "deletion_policy.yml"
-    config_file.write_text(yaml.safe_dump(policies), encoding="utf-8")
+    config_file.write_text(ryaml.dumps(policies), encoding="utf-8")
 
     result = click.testing.CliRunner().invoke(
         deletion_policy_tool._main,
@@ -133,7 +134,7 @@ def test___verbosity_flags___main___rejects_mixed_verbose_and_quiet(monkeypatch)
     )
 
     assert result.exit_code != 0
-    assert "Cannot use both --verbose and --quiet options together." in result.output
+    assert "'Logging Options' option group cannot be used at the same time" in result.output
 
 
 def _assert_result(example_folder, snapshot, files_before):
@@ -291,7 +292,7 @@ def test___multiple_policies_with_remove_folders___main___removes_empty_folders(
     _assert_result(example_folder, snapshot, files_before)
 
 
-def test___dry_run___main___does_not_delete_files_or_empty_folders(tmp_path):
+def test___dry_run___main___does_not_delete_files_or_empty_folders(tmp_path, caplog):
     folder = tmp_path / "example"
     folder.mkdir()
     empty_folder = folder / "empty"
@@ -303,21 +304,22 @@ def test___dry_run___main___does_not_delete_files_or_empty_folders(tmp_path):
 
     policies = [{"folder": str(folder), "age": 1, "extension": ".txt"}]
     config_file = tmp_path / "deletion_policy.yml"
-    config_file.write_text(yaml.safe_dump(policies), encoding="utf-8")
+    config_file.write_text(ryaml.dumps(policies), encoding="utf-8")
 
-    result = click.testing.CliRunner().invoke(
-        deletion_policy_tool._main,
-        env={"DELETION_POLICY_CONFIG_FILE": str(config_file)},
-        catch_exceptions=False,
-        args=["--dry-run", "--remove-empty-folders"],
-        input="",
-    )
+    with caplog.at_level(logging.INFO):
+        result = click.testing.CliRunner().invoke(
+            deletion_policy_tool._main,
+            env={"DELETION_POLICY_CONFIG_FILE": str(config_file)},
+            catch_exceptions=False,
+            args=["--dry-run", "--remove-empty-folders"],
+            input="",
+        )
 
     assert result.exit_code == 0
     assert old_file.exists()
     assert empty_folder.exists()
-    assert "would delete" in result.output.lower()
-    assert "would remove empty folder" in result.output.lower()
+    assert any("would delete" in message.lower() for message in caplog.messages)
+    assert any("would remove empty folder" in message.lower() for message in caplog.messages)
 
 
 def test___confirm_each_delete___main___skip_file_when_user_declines(tmp_path):
@@ -329,7 +331,7 @@ def test___confirm_each_delete___main___skip_file_when_user_declines(tmp_path):
 
     policies = [{"folder": str(folder), "age": 1, "extension": ".txt"}]
     config_file = tmp_path / "deletion_policy.yml"
-    config_file.write_text(yaml.safe_dump(policies), encoding="utf-8")
+    config_file.write_text(ryaml.dumps(policies), encoding="utf-8")
 
     result = click.testing.CliRunner().invoke(
         deletion_policy_tool._main,
