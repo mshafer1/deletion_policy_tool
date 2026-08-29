@@ -11,13 +11,13 @@ dynamic = ["dependencies"]
 packages = [
     {include = "deletion_policy_tool", from = "src"},
 ]
-scripts = {run-deletion-policy = "deletion_policy_tool.__main__:_main"}
+scripts = {run-deletion-policy = "deletion_policy_tool:_main"}
 
 [tool.poetry.dependencies]
 python-decouple = "^3.8"
 click = "^8.4.2"
-pyyaml = "^6.0.3"
 click-option-group = "^0.5.9"
+ryaml = "^0.5.1"
 
 
 [build-system]

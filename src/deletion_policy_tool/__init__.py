@@ -14,7 +14,7 @@ import typing
 import click
 import click_option_group
 import decouple
-import yaml
+import ryaml
 
 _logger = logging.getLogger(__name__)
 _logger.addHandler(logging.NullHandler())
@@ -60,7 +60,7 @@ def _load_config() -> list[DeletionPolicy]:
             f"Configuration file {config_file} not found. Please create it or set the DELETION_POLICY_CONFIG_FILE environment variable to point to a different location."
         )
     with config_file.open("r", encoding="utf-8") as config_stream:
-        raw_config = yaml.load(config_stream, Loader=yaml.CSafeLoader) or []
+        raw_config = ryaml.load(config_stream) or []
 
     if isinstance(raw_config, dict):
         raise ValueError(
