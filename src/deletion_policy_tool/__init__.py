@@ -90,7 +90,7 @@ def _load_config() -> list[DeletionPolicy]:
     return policies
 
 
-TODAY = datetime.datetime.now()
+# Intentionally compute current time at call sites; avoid a module-level timestamp.
 
 
 def _iter_policy_files(policy: DeletionPolicy) -> typing.Iterator[pathlib.Path]:

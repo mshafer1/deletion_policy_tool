@@ -1,6 +1,6 @@
 """Entry point for the Deletion Policy Tool."""
 
-from deletion_policy_tool import _main
+import deletion_policy_tool
 
 if __name__ == "__main__":
-    _main()
+    deletion_policy_tool._main()
