@@ -1,0 +1,28 @@
+name: PR Checks
+
+on:
+  pull_request:
+    branches:
+      - main
+      - 'releases/**'
+  workflow_call:
+  workflow_dispatch:
+
+permissions: {}
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.event.pull_request.number || github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  check_actions:
+    name: Run Check Actions
+    uses: ./.github/workflows/check_actions.yml
+    permissions:
+      security-events: write # Needed to upload code-scanning (SARIF) results for actions in this repo.
+  check_package:
+    needs: [check_actions]
+    uses: ./.github/workflows/check_package.yml
+  check_tests:
+    needs: [check_actions, check_package]
+    uses: ./.github/workflows/check_tests.yml
