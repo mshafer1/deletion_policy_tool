@@ -84,7 +84,9 @@ def _iter_policy_files(policy: DeletionPolicy) -> typing.Iterator[pathlib.Path]:
 
 
 def _is_file_old(file: pathlib.Path, min_age_days: int) -> bool:
-    file_age = datetime.datetime.now() - datetime.datetime.fromtimestamp(file.stat().st_mtime)
+    file_age = datetime.datetime.now() - datetime.datetime.fromtimestamp(
+        file.stat().st_mtime
+    )
     return file_age >= datetime.timedelta(days=min_age_days)
 
 
@@ -108,7 +110,26 @@ def _has_expected_copy(file: pathlib.Path, policy: DeletionPolicy) -> bool:
     return copy_file.is_file()
 
 
-def _process_policy(policy: DeletionPolicy) -> None:
+def _confirm_or_skip(
+    path: pathlib.Path, *, action: str, dry_run: bool, confirm_each_delete: bool
+) -> bool:
+    if dry_run:
+        print(f"would {action} {path}")
+        return False
+
+    if confirm_each_delete and not click.confirm(
+        f"{action.capitalize()} {path}?", default=False
+    ):
+        print(f"skipping {path}: user declined")
+        return False
+
+    print(f"{action} {path}")
+    return True
+
+
+def _process_policy(
+    policy: DeletionPolicy, *, confirm_each_delete: bool = False, dry_run: bool = False
+) -> None:
     for file in _iter_policy_files(policy):
         if not _is_file_old(file, policy.age):
             print(f"skipping {file}: less than {policy.age} days old")
@@ -125,26 +146,50 @@ def _process_policy(policy: DeletionPolicy) -> None:
                 print(f"skipping {file}: expected copy missing")
                 continue
 
-        print(f"deleting {file}")
-        file.unlink()
+        if _confirm_or_skip(
+            file,
+            action="delete",
+            dry_run=dry_run,
+            confirm_each_delete=confirm_each_delete,
+        ):
+            file.unlink()
 
 
 @click.command()
 @click.option(
-    "--remove-empty-folders", is_flag=True, help="Remove empty folders after deleting files."
+    "--remove-empty-folders",
+    is_flag=True,
+    help="Remove empty folders after deleting files.",
 )
-def _main(remove_empty_folders: bool) -> None:
+@click.option(
+    "--confirm-each-delete",
+    is_flag=True,
+    help="Request confirmation from the user before deleting each file/folder.",
+)
+@click.option(
+    "--dry-run",
+    is_flag=True,
+    help="Do not take actions, only log what would happen.",
+)
+def _main(remove_empty_folders: bool, confirm_each_delete: bool, dry_run: bool) -> None:
     policies = _load_config()
     for policy in policies:
-        _process_policy(policy)
+        _process_policy(
+            policy, confirm_each_delete=confirm_each_delete, dry_run=dry_run
+        )
 
     if remove_empty_folders:
         for policy in policies:
             for folder, _, _ in os.walk(policy.folder, topdown=False):
                 folder_path = pathlib.Path(folder)
                 if not any(folder_path.iterdir()):
-                    print(f"removing empty folder {folder_path}")
-                    folder_path.rmdir()
+                    if _confirm_or_skip(
+                        folder_path,
+                        action="remove empty folder",
+                        dry_run=dry_run,
+                        confirm_each_delete=confirm_each_delete,
+                    ):
+                        folder_path.rmdir()
 
 
 if __name__ == "__main__":

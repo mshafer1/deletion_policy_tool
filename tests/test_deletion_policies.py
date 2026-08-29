@@ -54,11 +54,16 @@ def example_folder(tmp_path):
 
     # nested files with backups
     for i in range(20, 25):
-        file = folder / "nested_folder" / "backed_up" / f"nested_file_with_backup_{i}.txt"
+        file = (
+            folder / "nested_folder" / "backed_up" / f"nested_file_with_backup_{i}.txt"
+        )
         file.parent.mkdir(parents=True, exist_ok=True)
         file.write_text(f"example content {i}")
         backup_file = (
-            backup_folder / "nested_folder" / "backed_up" / f"nested_file_with_backup_{i}.txt"
+            backup_folder
+            / "nested_folder"
+            / "backed_up"
+            / f"nested_file_with_backup_{i}.txt"
         )
         backup_file.parent.mkdir(parents=True, exist_ok=True)
         backup_file.write_text(f"backup of example content {i}")
@@ -97,7 +102,8 @@ def _assert_result(example_folder, snapshot, files_before):
         "expected_remaining_files.txt",
     )
     snapshot.assert_match(
-        "\n".join(difflib.ndiff(files_before, remaining_relative_paths(example_folder))) + "\n",
+        "\n".join(difflib.ndiff(files_before, remaining_relative_paths(example_folder)))
+        + "\n",
         "diff.txt",
     )
 
@@ -197,7 +203,9 @@ def test___policy_skips_symlinks___main___leaves_them_in_place(tmp_path):
     assert not actual_file.exists()
 
 
-def test___multiple_policies___main___retains_expected_files(example_folder, snapshot, tmp_path):
+def test___multiple_policies___main___retains_expected_files(
+    example_folder, snapshot, tmp_path
+):
     policies = [
         {
             # delete .new_suffix files if a .txt file exists
@@ -244,3 +252,56 @@ def test___multiple_policies_with_remove_folders___main___removes_empty_folders(
     run_main_cli(tmp_path, policies, args=["--remove-empty-folders"])
 
     _assert_result(example_folder, snapshot, files_before)
+
+
+def test___dry_run___main___does_not_delete_files_or_empty_folders(tmp_path):
+    folder = tmp_path / "example"
+    folder.mkdir()
+    empty_folder = folder / "empty"
+    empty_folder.mkdir()
+
+    old_file = folder / "old.txt"
+    old_file.write_text("content")
+    os.utime(old_file, (time.time() - (2 * 24 * 60 * 60),) * 2)
+
+    policies = [{"folder": str(folder), "age": 1, "extension": ".txt"}]
+    config_file = tmp_path / "deletion_policy.yml"
+    config_file.write_text(yaml.safe_dump(policies), encoding="utf-8")
+
+    result = click.testing.CliRunner().invoke(
+        deletion_policy_tool._main,
+        env={"DELETION_POLICY_CONFIG_FILE": str(config_file)},
+        catch_exceptions=False,
+        args=["--dry-run", "--remove-empty-folders"],
+        input="",
+    )
+
+    assert result.exit_code == 0
+    assert old_file.exists()
+    assert empty_folder.exists()
+    assert "would delete" in result.output.lower()
+    assert "would remove empty folder" in result.output.lower()
+
+
+def test___confirm_each_delete___main___skip_file_when_user_declines(tmp_path):
+    folder = tmp_path / "example"
+    folder.mkdir()
+    old_file = folder / "old.txt"
+    old_file.write_text("content")
+    os.utime(old_file, (time.time() - (2 * 24 * 60 * 60),) * 2)
+
+    policies = [{"folder": str(folder), "age": 1, "extension": ".txt"}]
+    config_file = tmp_path / "deletion_policy.yml"
+    config_file.write_text(yaml.safe_dump(policies), encoding="utf-8")
+
+    result = click.testing.CliRunner().invoke(
+        deletion_policy_tool._main,
+        env={"DELETION_POLICY_CONFIG_FILE": str(config_file)},
+        catch_exceptions=False,
+        args=["--confirm-each-delete"],
+        input="n\n",
+    )
+
+    assert result.exit_code == 0
+    assert old_file.exists()
+    assert "Delete" in result.output or "delete" in result.output.lower()

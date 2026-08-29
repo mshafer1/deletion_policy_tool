@@ -87,6 +87,22 @@ run-deletion-policy
 run-deletion-policy --remove-empty-folders
 ```
 
+```bash
+# preview deletions without removing anything
+run-deletion-policy --dry-run
+```
+
+```bash
+# ask for confirmation before deleting each matching file or folder
+run-deletion-policy --confirm-each-delete
+```
+
+### Optional flags
+
+- `--dry-run`: logs the files and folders that would be deleted without making any changes.
+- `--confirm-each-delete`: prompts the user before each deletion so you can review the action individually.
+- `--remove-empty-folders`: removes directories that are empty after file deletions.
+
 To see additional options, use --help:
 ```bash
 run-deletion-policy --help

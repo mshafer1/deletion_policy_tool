@@ -11,7 +11,7 @@ dynamic = ["dependencies"]
 packages = [
     {include = "deletion_policy_tool", from = "src"},
 ]
-scripts = {run-deletion-policy = "deletion_policy_tool.__main__:main"}
+scripts = {run-deletion-policy = "deletion_policy_tool.__main__:_main"}
 
 [tool.poetry.dependencies]
 python-decouple = "^3.8"
