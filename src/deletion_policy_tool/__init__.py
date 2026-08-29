@@ -192,6 +192,10 @@ def _config_logging(verbosity: int):
     else:
         root_logger.setLevel(logging.DEBUG)
 
+    if getattr(root_logger, "_deletion_policy_tool_configured", False):
+        return
+    setattr(root_logger, "_deletion_policy_tool_configured", True)
+
     handler = logging.StreamHandler()
     handler.setFormatter(logging.Formatter("%(asctime)s - %(levelname)s - %(message)s"))
     root_logger.addHandler(handler)
