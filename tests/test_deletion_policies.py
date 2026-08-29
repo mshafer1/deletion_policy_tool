@@ -164,7 +164,7 @@ def test___policy_with_extension___main___deletes_expected_files(
     _assert_result(example_folder, snapshot, files_before)
 
 
-def test___policy_with_backup_destination___main___delets_only_files_that_have_backups(
+def test___policy_with_backup_destination___main___deletes_only_files_that_have_backups(
     example_folder, snapshot, tmp_path
 ):
     backup_folder = example_folder.parent / "backup"
