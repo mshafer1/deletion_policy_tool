@@ -2,6 +2,7 @@ import difflib
 import logging
 import os
 import time
+import unittest.mock
 
 import click.testing
 import pytest
@@ -344,3 +345,37 @@ def test___confirm_each_delete___main___skip_file_when_user_declines(tmp_path):
     assert result.exit_code == 0
     assert old_file.exists()
     assert "Delete" in result.output or "delete" in result.output.lower()
+
+
+def test___exception_in_config_loading___uses_file_logger(monkeypatch, tmp_path):
+    config_file = tmp_path / "deletion_policy.yml"
+    config_file.write_text("invalid_yaml: [unclosed_list", encoding="utf-8")
+
+    file_logger_exception = unittest.mock.Mock()
+
+    monkeypatch.setattr(deletion_policy_tool._file_logger, "exception", file_logger_exception)
+
+    result = click.testing.CliRunner().invoke(
+        deletion_policy_tool._main,
+        env={"DELETION_POLICY_CONFIG_FILE": str(config_file)},
+        catch_exceptions=False,
+        args=[],
+    )
+
+    assert result.exit_code != 0
+    file_logger_exception.assert_called_once_with("Exception occurred during execution")
+
+
+def test___exception_in_config_loading___main_output_does_not_include_stack_trace(tmp_path):
+    config_file = tmp_path / "deletion_policy.yml"
+    config_file.write_text("invalid_yaml: [unclosed_list", encoding="utf-8")
+
+    result = click.testing.CliRunner().invoke(
+        deletion_policy_tool._main,
+        env={"DELETION_POLICY_CONFIG_FILE": str(config_file)},
+        catch_exceptions=False,
+        args=[],
+    )
+
+    assert result.exit_code != 0
+    assert "Traceback" not in result.output
