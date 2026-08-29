@@ -1,5 +1,9 @@
 # deletion-policy-tool
 
+> Warning: This tool is intentionally built for developers and system administrators who understand that it follows the classic Linux philosophy: "If you want to shoot yourself in the foot, it is this tool's job to do that as efficiently as possible." Use it only with carefully reviewed policies, backups, and explicit operational intent.
+>
+> This project comes with no warranty. See the LICENSE file for the legal text and warranty disclaimer.
+
 This project provides a small command-line tool for cleaning up files according to configurable deletion policies.
 
 ## What it does
